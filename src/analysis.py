@@ -82,3 +82,23 @@ def plot_acf_pacf(series: pd.Series, lags: int = 40):
     plot_pacf(series.dropna(), ax = axes[1], lags = lags, title = 'PACF', method = 'ywm')
     plt.tight_layout()
     plt.show()
+
+def compare_gaussian_nll(series: pd.Series, mean1: pd.Series, std1: pd.Series, mean2: pd.Series, std2: pd.Series, label1: str = "NN", label2: str = "ARCH"):
+    eps = 1e-12
+    index = series.index.intersection(mean1.index).intersection(std1.index).intersection(mean2.index).intersection(std2.index)
+    if len(index) == 0:
+        raise ValueError("No overlapping indices between realized and forecasts.")
+    y = series.loc[index].values
+    m1 = mean1.loc[index].values
+    v1 = np.maximum((std1.loc[index].values) ** 2, eps)
+    m2 = mean2.loc[index].values
+    v2 = np.maximum((std2.loc[index].values) ** 2, eps)
+
+    def nll(y, m, v):
+        return 0.5 * (np.log(2 * np.pi * v) + (y - m) ** 2 / v)
+
+    nll1 = float(nll(y, m1, v1).mean())
+    nll2 = float(nll(y, m2, v2).mean())
+    print(f"{label1} Gaussian NLL: {nll1:.6f}")
+    print(f"{label2} Gaussian NLL: {nll2:.6f}")
+    return {label1: nll1, label2: nll2}

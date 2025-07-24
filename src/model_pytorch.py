@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -19,8 +20,8 @@ class ForecastingDataset(Dataset):
         return self.len
 
     def __getitem__(self, idx):
-        x = self.data[idx : idx + self.window]
-        y = self.data[idx + self.window : idx + self.window + self.horizon]
+        x = self.data[idx:idx + self.window]
+        y = self.data[idx + self.window:idx + self.window + self.horizon]
         return torch.tensor(x, dtype = torch.float32), torch.tensor(y, dtype = torch.float32)
     
 class ReturnForecaster(nn.Module):
@@ -41,11 +42,10 @@ class ReturnForecaster(nn.Module):
         x = self.shared_net(x)
         mean = self.mean_head(x)
         logvar = self.logvar_head(x)
-        var = torch.exp(logvar)
-        return mean, var
-    
-def gaussian_nll_loss(mean, var, target):
-    return torch.mean(0.5 * torch.log(2 * torch.pi * var) + 0.5 * ((target - mean) ** 2) / var)
+        return mean, logvar
+
+def gaussian_nll_loss(mean, logvar, target):
+    return torch.mean(0.5 * (math.log(2 * math.pi) + logvar) + 0.5 * ((target - mean) ** 2) * torch.exp(-logvar))
 
 def prepare_dataloaders(series: pd.Series, window: int, horizon: int, batch_size: int = 64, valid_split: float = 0.2):
     returns = series.values
@@ -56,8 +56,8 @@ def prepare_dataloaders(series: pd.Series, window: int, horizon: int, batch_size
     valid_len = int(valid_split * total_len)
     train_len = total_len - valid_len
     train_dataset, valid_dataset = random_split(full_dataset, [train_len, valid_len])
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False, drop_last=False)
+    train_loader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True, drop_last = True)
+    valid_loader = DataLoader(valid_dataset, batch_size = batch_size, shuffle = False, drop_last = False)
     return train_loader, valid_loader, scaler
 
 def train_model(train_loader, valid_loader, epochs = 50, lr = 1e-3):
@@ -76,8 +76,8 @@ def train_model(train_loader, valid_loader, epochs = 50, lr = 1e-3):
             x_batch = x_batch.to(device)
             y_batch = y_batch.to(device)
             optimizer.zero_grad()
-            mean_pred, var_pred = model(x_batch)
-            loss = gaussian_nll_loss(mean_pred, var_pred, y_batch)
+            mean_pred, logvar_pred = model(x_batch)
+            loss = gaussian_nll_loss(mean_pred, logvar_pred, y_batch)
             loss.backward()
             optimizer.step()
             epoch_train_loss += loss.item()
@@ -89,8 +89,8 @@ def train_model(train_loader, valid_loader, epochs = 50, lr = 1e-3):
             for x_valid, y_valid in valid_loader:
                 x_valid = x_valid.to(device)
                 y_valid = y_valid.to(device)
-                mean_pred, var_pred = model(x_valid)
-                loss = gaussian_nll_loss(mean_pred, var_pred, y_valid)
+                mean_pred, logvar_pred = model(x_valid)
+                loss = gaussian_nll_loss(mean_pred, logvar_pred, y_valid)
                 epoch_valid_loss += loss.item()
         valid_loss.append(epoch_valid_loss / len(valid_loader))
     return model, pd.DataFrame({"train": train_loss, "valid": valid_loss})
@@ -102,7 +102,8 @@ def forecast(model: torch.nn.Module, series: pd.Series, scaler: StandardScaler):
     scaled = scaler.transform(series.values.reshape(-1, 1)).flatten().reshape(1, -1)
     x = torch.tensor(scaled, dtype=torch.float32).to(device)
     with torch.no_grad():
-        mean, var = model(x)
+        mean, logvar = model(x)
+    var = torch.exp(logvar)
     mean = mean.cpu().numpy().squeeze(0)
     var = var.cpu().numpy().squeeze(0)
     mean = scaler.inverse_transform(mean.reshape(-1, 1)).squeeze(1)
@@ -122,23 +123,7 @@ def plot_loss_history(history: pd.DataFrame):
     plt.tight_layout()
     plt.show()
 
-def plot_series(series: pd.Series, model: torch.nn.Module = None, window: pd.Series = None, scaler: StandardScaler = None, k: int = 2):
-    """
-    Plot the original series and the forecast from a pretrained neural network model.
-
-    Parameters
-    ----------
-    series : pd.Series
-        The full time series to plot.
-    model : torch.nn.Module
-        A pretrained neural network forecasting model.
-    window : pd.Series
-        The most recent window of the series to forecast from.
-    scaler : StandardScaler
-        Scaler used to normalize the input during training.
-    k : int, default = 2
-        Standard deviation multiplier for the forecast confidence band.
-    """
+def plot_series(series: pd.Series, model: torch.nn.Module = None, window: pd.Series = None, scaler: StandardScaler = None, end_of_training: str = None, k: int = 2):
     index = series.index
     plt.figure(figsize = (10, 5))
     if model:
@@ -157,6 +142,8 @@ def plot_series(series: pd.Series, model: torch.nn.Module = None, window: pd.Ser
         mean, std = forecast(model, window, scaler)
         plt.plot(mean.index, mean, label = 'NN Forecast Mean', color='green', linestyle='--')
         plt.fill_between(mean.index, mean - k * std, mean + k * std, color = 'green', alpha = 0.3, label = f'±{k} std band')
+        if end_of_training and pd.Timestamp(end_of_training) >= index[0]:
+            plt.axvline(pd.Timestamp(end_of_training), color = 'black', linestyle = ':', linewidth = 1, label = 'End of training')
     else:
         plt.plot(series.index, series, label = 'Original Series', color = 'blue')
     plt.title('PyTorch fit')

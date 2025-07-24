@@ -37,6 +37,14 @@ def print_diagnostics(model):
     print(f'  AIC: {model.aic:.2f}')
     print(f'  BIC: {model.bic:.2f}')
 
+def forecast(model, horizon):
+    model_end = model.model.y.index[-1]
+    forecast = model.forecast(horizon = horizon, start = model_end)
+    index = pd.bdate_range(start = model_end + pd.Timedelta(days = 1), periods = horizon)
+    mean = pd.Series(forecast.mean.iloc[-1].values, index = index)
+    std = pd.Series(np.sqrt(forecast.variance.iloc[-1].values), index = index)
+    return mean, std
+
 def plot_series(series: pd.Series, model = None, k = 2, horizon = 0):
     """
     Plot a time series along with a model fit and forecast (if provided).
@@ -74,10 +82,7 @@ def plot_series(series: pd.Series, model = None, k = 2, horizon = 0):
         std = model.conditional_volatility
         mean = pd.Series(model.model.y, index = index_mid) - model.resid[index_mid]
         if horizon:
-            forecast = model.forecast(horizon = horizon, start = model_end)
-            forecast_index = pd.bdate_range(start = model_end + pd.Timedelta(days = 1), periods = horizon)
-            forecast_mean = pd.Series(forecast.mean.iloc[-1].values, index = forecast_index)
-            forecast_std = pd.Series(np.sqrt(forecast.variance.iloc[-1].values), index = forecast_index)
+            forecast_mean, forecast_std = forecast(model, horizon)
             mean = pd.concat([mean, forecast_mean])
             std = pd.concat([std, forecast_std])
             plot_index = mean.index
