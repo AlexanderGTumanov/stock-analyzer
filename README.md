@@ -7,7 +7,7 @@ This project is designed as a small portfolio piece to demonstrate Python skills
 
 ## What It Does
 
-- Downloads historical stock prices (e.g., from Yahoo Finance).
+- Downloads historical stock prices from Yahoo Finance.
 - Computes daily returns and log returns.
 - Fits a simple ARCH model to estimate volatility and produce short-term volatility forecasts.
 - Builds and trains a PyTorch NN with the same functionality.
