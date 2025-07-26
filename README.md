@@ -67,7 +67,7 @@ This file provides tools for fitting and analyzing ARMA/ARCH models:
 - **forecast(model, horizon: int)**:
   Forecasts the mean and standard deviation of the series **horizon** steps beyond the model’s fit range, returning them as a tuple of pandas Series.
 - **plot_series(series: pd.Series, model = None, k: int = 2, horizon: int = 0)**:
-  Plots **series** along with the model’s mean prediction and a ±**k** standard deviation confidence interval. If **horizon** is provided, the function also forecasts **horizon** steps beyond the fit range. The fitted and unfitted portions of the series are plotted in different colors. If no model is provided, the function defaults to plotting the raw time series.
+  Plots **series** along with the model’s mean prediction and a ±**k** standard deviation confidence interval. If **horizon** is provided, the function also forecasts **horizon** steps beyond the fit range. The fitted and unfitted portions of the series are plotted in different colors.
 
 ### `model_pytorch.py`
 
@@ -77,3 +77,20 @@ This file provides tools for fitting and analyzing neural networks (NNs) for tim
   A PyTorch dataset class that transforms **series** into training samples for the model. **scaler** is used to normalize the data, with `StandardScaler()` being the default choice.
 - **ReturnForecaster(nn.Module) — __init__(self, window: int, horizon: int, hidden_sizes = (64, 64), dropout_rate = 0.2)**:  
   The neural network model. The number and size of hidden layers can be adjusted via **hidden_sizes**. **dropout_rate** controls overfitting. The model outputs **mean** and **logevar**, representing the predicted mean and logarithmic variance over the forecast horizon. Logarithmic variance is used instead of normal variance to avoid unnecessary exponentiation, which can degrade performance.
+- **gaussian_nll_loss(mean, logvar, target)**:
+  Computes the Gaussian negative log-likelihood of the fit, defined as
+  
+  $$
+  L_\text{nll} = E\left[\frac{1}{2}\left(\text{log}\ 2\pi + \text{\bf logvar}\right) + \frac{1}{2}\left(\text{\bf target} - \text{\bf mean}\right)^2\ e^{-\text{\bf logvar}}\right].
+  $$
+
+- **prepare_dataloaders(series: pd.Series, window: int, horizon: int, batch_size: int = 64, valid_split: float = 0.2)**:
+  Builds the input data for the model based on **series**, **window**, and **horizon**, splits it into training and validation sets, and packages them into dataloaders. **batch_size** controls the batch size, while **valid_split** specifies the proportion of data reserved for validation. The function returns *DataLoader()* objects **train_loader**, **valid_loader**, and the **scaler** used to normalize the data.
+- **train_model(train_loader, valid_loader, epochs = 50, lr = 1e-3)**:
+  Trains the model on data provided by **train_loader** and **valid_loader**. **epochs** specifies the number of training iterations, and **lr** is the learning rate. The function returns the trained model and a dataframe **pd.DataFrame({"train": train_loss, "valid": valid_loss})** that contains train and validation losses across epochs.
+- **plot_loss_history(history: pd.DataFrame)**:
+  Plots the training and validation loss curves over the course of training.
+- **forecast(model: torch.nn.Module, series: pd.Series, scaler: StandardScaler)**:
+  Uses **model** to generate forecasts based on **series**. The predictions are then denormalized using the **scaler** applied during training. The length of **series** must match the **model**’s window. The function converts the model’s **logvar** output to standard deviation and returns **mean** and **std** time series.
+- **plot_series(series: pd.Series, model: torch.nn.Module, fit_series: pd.Series, scaler: StandardScaler, end_of_training = None, k: int = 2)**:
+  Generates forecasts from fit_series **fit_series** and plots orignial **series** along with the model’s mean prediction and a ±**k** standard deviation confidence interval. The fitted and unfitted portions of the series are plotted in different colors. **scaler** is used to undo data normalization. The optional **end_of_training** parameter marks the boundary of the training dataset. The length of **fit_series** must match **model**’s window.
