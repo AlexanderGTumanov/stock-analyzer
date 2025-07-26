@@ -3,6 +3,14 @@
 A simple Python project to analyze stock data and forecast volatility using an ARCH model.  
 This project is designed as a small portfolio piece to demonstrate Python skills in data analysis and basic time-series modeling.
 
+- **Boeing (BA) 2020**
+
+  In March 2020, Boeing's stock experienced a major crash due to the COVID-19 pandemic. The lockdowns severely impacted the company because of a sharp decline in the number of travelers. The volatility chart from that period shows a pronounced spike, followed by gradual stabilization over the subsequent months. Our goal is to provide the models with just enough data to detect the early stages of the crash and use them to predict both the magnitude of the spike and the rate at which volatility stabilizes afterward.
+
+- **GameStop (GME) 2021**
+
+   In January 2021, the Reddit community r/WallStreetBets began collectively buying large numbers of GameStop shares, rapidly driving up the price. Since GameStop was a heavily shorted stock, many investors were forced to buy shares to cover their positions, which pushed the price even higher. The short squeeze lasted several months and, from a time series analysis perspective, represented a highly non-stationary event. However, the aftermath of the squeeze exhibited typical features of post-crash behavior, such as volatility clustering and secondary shocks. Our goal is to model these phenomena.
+
 ---
 
 ## What It Does
