@@ -1,15 +1,20 @@
 # Stock Analyzer
 
-A simple Python project to analyze stock data and forecast volatility using an ARCH model.  
-This project is designed as a small portfolio piece to demonstrate Python skills in data analysis and basic time-series modeling.
+This project is designed as a small portfolio piece to demonstrate Python skills in time-series modeling using ARCH models and neural networks. The notebook file `stock_analyzer.ipynb` contains case study of three different stocks in the aftermath of high-volatility events:
 
 - **Boeing (BA) 2020**
 
-  In March 2020, Boeing's stock experienced a major crash due to the COVID-19 pandemic. The lockdowns severely impacted the company because of a sharp decline in the number of travelers. The volatility chart from that period shows a pronounced spike, followed by gradual stabilization over the subsequent months. Our goal is to provide the models with just enough data to detect the early stages of the crash and use them to predict both the magnitude of the spike and the rate at which volatility stabilizes afterward.
+In March 2020, Boeing's stock experienced a major crash due to the COVID-19 pandemic. The lockdowns severely impacted the company because of a sharp decline in the number of travelers. The volatility chart from that period shows a pronounced spike, followed by gradual stabilization over the subsequent months. Our goal is to provide the models with just enough data to detect the early stages of the crash and use them to predict both the magnitude of the spike and the rate at which volatility stabilizes afterward.
 
 - **GameStop (GME) 2021**
 
-   In January 2021, the Reddit community r/WallStreetBets began collectively buying large numbers of GameStop shares, rapidly driving up the price. Since GameStop was a heavily shorted stock, many investors were forced to buy shares to cover their positions, which pushed the price even higher. The short squeeze lasted several months and, from a time series analysis perspective, represented a highly non-stationary event. However, the aftermath of the squeeze exhibited typical features of post-crash behavior, such as volatility clustering and secondary shocks. Our goal is to model these phenomena.
+In January 2021, the Reddit community r/WallStreetBets began collectively buying large numbers of GameStop shares, rapidly driving up the price. Since GameStop was a heavily shorted stock, many investors were forced to buy shares to cover their positions, which pushed the price even higher. The short squeeze lasted several months and, from a time series analysis perspective, represented a highly non-stationary event. However, the aftermath of the squeeze exhibited typical features of post-crash behavior, such as volatility clustering and secondary shocks. Our goal is to model these phenomena.
+
+- **Apple (AAPL) 2020**
+
+The COVID-19 pandemic affected Apple’s stock to a significantly lesser degree than Boeing’s. In the aftermath of the crash, it exhibited volatility clustering, with a brief period of low volatility followed by a secondary shock. Another interesting feature of this stock is that, during this period, it showed autocorrelation not only in squared returns (as expected) but also in the returns themselves. These characteristics make this time series particularly interesting to model.
+
+We will first fit these three time series using ARCH models, then apply PyTorch neural networks (NNs), and finally compare the quality of their predictions. Each NN is trained on the historical data of its corresponding stock, while making sure that the model does not have access to the data it is tasked to predict. The network forecasts both the mean and the volatility of the series a fixed number of steps ahead and is trained using the Gaussian negative log-likelihood (NLL) loss function. The Gaussian NLL is also used to evaluate and compare the models’ predictions.
 
 ---
 
@@ -60,7 +65,7 @@ This file contains tools for general time series analysis:
 - **plot_acf_pacf(series: pd.Series, lags: int = 40)**:
   Plots the *autocorrelation function* and *partial autocorrelation function* of **series** up to the number of lags specified by **lags**.
 - **compare_gaussian_nll(series: pd.Series, mean1: pd.Series, std1: pd.Series, mean2: pd.Series, std2: pd.Series, label1: str = "NN", label2: str = "ARCH")**:
-  The main tool for model comparisons. Compares the Gaussian negative log-likelihood (NLL) for two forecasts over their overlapping portions. **series** is the observed time series against which both forecasts are evaluated; **mean1** and **std1** are the mean and standard deviation forecasts of the first model, while **mean2** and **std2** belong to the second model. By default, the function assumes the first forecast comes from the NN and the second from the ARCH model and labels them accordingly. Labels can be customized via **label1** and **label2**.
+  The main tool for model comparisons. Compares the Gaussian NLL for two forecasts over their overlapping portions. **series** is the observed time series against which both forecasts are evaluated; **mean1** and **std1** are the mean and standard deviation forecasts of the first model, while **mean2** and **std2** belong to the second model. By default, the function assumes the first forecast comes from the NN and the second from the ARCH model and labels them accordingly. Labels can be customized via **label1** and **label2**.
 
 ### `model_arch.py`
 
@@ -79,7 +84,7 @@ This file provides tools for fitting and analyzing ARMA/ARCH models:
 
 ### `model_pytorch.py`
 
-This file provides tools for fitting and analyzing neural networks (NNs) for time series forecasting. The model takes a segment of a time series of length **window** and predicts its continuation for **horizon** steps ahead. It is trained on the historical data of the stock in question prior to the event being modeled.
+This file provides tools for fitting and analyzing neural networks for time series forecasting. The model takes a segment of a time series of length **window** and predicts its continuation for **horizon** steps ahead. It is trained on the historical data of the stock in question prior to the event being modeled.
 
 - **ForecastingDataset(Dataset) — __init__(self, series: np.ndarray, window: int, horizon: int, scaler: StandardScaler)**:  
   A PyTorch dataset class that transforms **series** into training samples for the model. **scaler** is used to normalize the data, with `StandardScaler()` being the default choice.
