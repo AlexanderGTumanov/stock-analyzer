@@ -1,6 +1,6 @@
 # Stock Analyzer
 
-This project is designed as a small portfolio piece to demonstrate Python skills in time-series modeling using ARCH models and neural networks. The notebook file `stock_analyzer.ipynb` contains case study of three different stocks in the aftermath of high-volatility events:
+This project is a compact portfolio piece showcasing time‑series modeling with ARCH-family models and PyTorch neural networks. The notebook `stock_analyzer.ipynb` presents three case studies of stocks in the aftermath of high‑volatility events:
 
 - **Boeing (BA) 2020**
 
@@ -14,7 +14,9 @@ In January 2021, the Reddit community r/WallStreetBets began collectively buying
 
 The COVID-19 pandemic affected Apple’s stock to a significantly lesser degree than Boeing’s. In the aftermath of the crash, it exhibited volatility clustering, with a brief period of low volatility followed by a secondary shock. Another interesting feature of this stock is that, during this period, it showed autocorrelation not only in squared returns (as expected) but also in the returns themselves. These characteristics make this time series particularly interesting to model.
 
-We will first fit these three time series using ARCH models, then apply PyTorch neural networks (NNs), and finally compare the quality of their predictions. Each NN is trained on the historical data of its corresponding stock, while making sure that the model does not have access to the data it is tasked to predict. The network forecasts both the mean and the volatility of the series a fixed number of steps ahead and is trained using the Gaussian negative log-likelihood (NLL) loss function. The Gaussian NLL is also used to evaluate and compare the models’ predictions.
+We will first fit these three time series using ARCH models, then using PyTorch neural networks (NNs), and finally compare the quality of their predictions. Each NN is trained on the historical data of its corresponding stock, while making sure that the model does not have access to the data it is tasked to predict. The network forecasts both the mean and the volatility of the series a fixed number of steps ahead and is trained using the Gaussian negative log-likelihood (NLL) loss function. The Gaussian NLL is also used to evaluate and compare the models’ predictions.
+
+The project is organized into two main directories: the ’/notebooks’ folder, which contains the ’stock_analyzer.ipynb’ notebook, and the ’/src’ folder, which holds the source code files for all the functions used in the notebook.
 
 ---
 
@@ -40,7 +42,11 @@ We will first fit these three time series using ARCH models, then apply PyTorch 
 
 ## Contents of the Notebook
 
-Notebook `/notebooks/stock_analyzer.ipynb` 
+Notebook `/notebooks/stock_analyzer.ipynb`. This notebook consists of two sections.
+
+In the first section, the ARCH model is used to fit the three stocks described above. Naturaly, the model does not have the capacity to predict the crash, so some information about it has to be included into the fit. For the BA stock, just the initial stages of the crash are sufficient for model to realize what is happening and model it accurately during the event and in it's aftermath. In the other two cases, the entire crash period is fed into the model and we are simply aiming to model the aftermath.
+
+In the second 
 
 ---
 
