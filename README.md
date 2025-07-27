@@ -1,6 +1,6 @@
 # Stock Analyzer
 
-This project is a compact portfolio piece showcasing time‑series modeling with ARCH-family models and PyTorch neural networks. The notebook `stock_analyzer.ipynb` presents three case studies of stocks in the aftermath of high‑volatility events:
+This project focuses on financial time-series modeling and forecasting using ARCH-family models and PyTorch neural networks. The notebook `stock_analyzer.ipynb` presents three case studies of stocks in the aftermath of high‑volatility events:
 
 - **Boeing (BA) 2020**
 
