@@ -46,7 +46,7 @@ Notebook `/notebooks/stock_analyzer.ipynb`. This notebook consists of two sectio
 
 In the first section, the ARCH model is used to fit the three stocks described above. Naturaly, the model does not have the capacity to predict the crash, so some information about it has to be included into the fit. For the BA stock, just the initial stages of the crash are sufficient for model to realize what is happening and model it accurately during the event and in it's aftermath. In the other two cases, the entire crash period is fed into the model and we are simply aiming to model the aftermath.
 
-In the second 
+In the second section, the same datasets are analyzed using neural networks (NNs). The training ranges, fit lengths, and forecast horizons vary on a case-by-case basis. See the comments in the notebook for more details on how these parameters are selected. Once the NN forecasts are built, their accuracy is compared with that of the ARCH models.
 
 ---
 
