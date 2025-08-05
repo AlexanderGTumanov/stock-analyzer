@@ -42,7 +42,7 @@ The project is organized into two main directories: the ’/notebooks’ folder,
 
 ## Contents of the Notebook
 
-Notebook `/notebooks/stock_analyzer.ipynb`. This notebook consists of two sections.
+Notebook `/notebooks/stock_analyzer.ipynb` consists of two sections.
 
 In the first section, the ARCH model is used to fit the three stocks described above. Naturaly, the model does not have the capacity to predict the crash, so some information about it has to be included into the fit. For the BA stock, just the initial stages of the crash are sufficient for model to realize what is happening and model it accurately during the event and in it's aftermath. In the other two cases, the entire crash period is fed into the model and we are simply aiming to model the aftermath.
 
